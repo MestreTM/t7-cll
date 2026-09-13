@@ -108,10 +108,24 @@ int32_t parse_flags(int argc, char *argv[]) {
       .default_value(false)
       .implicit_value(true);
   program.add_argument("-launch", "--launch")
-      .help("Start the game immediately, skipping some launcher UI and "
-            "pre-checks")
+      .help("Start the game immediately, skipping the HTML launcher")
       .default_value(false)
       .implicit_value(true);
+  program.add_argument("-about", "--about")
+      .help("Show client credits")
+      .default_value(false)
+      .implicit_value(true);
+  program.add_argument("-online", "--online")
+      .help("Contact master.ezz.lol (server list / friends presence)")
+      .default_value(false)
+      .implicit_value(true);
+  program.add_argument("-nowatermark", "--nowatermark")
+      .help("Hide the in-game overlay (alias of -nobranding)")
+      .default_value(false)
+      .implicit_value(true);
+  program.add_argument("-nick", "--nick", "-name", "--name")
+      .help("Player name")
+      .default_value(std::string(""));
   program.add_argument("-noupdate", "--noupdate")
       .help("Disable automatic updates (not recommended)")
       .default_value(false)

@@ -32,6 +32,8 @@ void load_imports(const utils::nt::library &target) {
                                                        descriptor->FirstThunk);
     }
 
+    auto library = utils::nt::library::load(name);
+
     while (*name_table_entry) {
       FARPROC function = nullptr;
       std::string function_name;
@@ -47,7 +49,6 @@ void load_imports(const utils::nt::library &target) {
         function_procname = function_name.data();
       }
 
-      auto library = utils::nt::library::load(name);
       if (library) {
         function = GetProcAddress(library, function_procname);
       }

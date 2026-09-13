@@ -1570,7 +1570,7 @@ void register_lua_libs() {
 
 struct component final : generic_component {
   component() {
-    SetConsoleTitleA("EZZ BOIII V" SHORTVERSION);
+    SetConsoleTitleA("CLL V" SHORTVERSION);
 
     if (game::is_headless()) {
       if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
@@ -1578,7 +1578,7 @@ struct component final : generic_component {
         AttachConsole(GetCurrentProcessId());
       }
 
-      SetConsoleTitleA("EZZ BOIII V" SHORTVERSION);
+      SetConsoleTitleA("CLL V" SHORTVERSION);
       ShowWindow(GetConsoleWindow(),
                  hide_external_console() ? SW_HIDE : SW_SHOW);
 

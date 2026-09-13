@@ -19,6 +19,7 @@
 #include <utils/string.hpp>
 #include <utils/concurrency.hpp>
 #include <utils/http.hpp>
+#include <utils/flags.hpp>
 
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
@@ -81,6 +82,10 @@ std::string get_preferred_local_ip() {
 }
 
 void fetch_public_ip() {
+  if (!utils::flags::has_flag("online")) {
+    return;
+  }
+
   try {
     std::optional<std::string> resp =
         utils::http::get_data("https://api.ipify.org", {}, {}, 1);

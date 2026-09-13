@@ -15,6 +15,7 @@
 #endif
 
 #include "scheduler.hpp"
+#include "command.hpp"
 
 #include <utils/hook.hpp>
 #include <utils/flags.hpp>
@@ -36,26 +37,38 @@ void draw_branding() {
     return;
 
   game::render::R_AddCmdDrawText(
-      "EZZ: " VERSION, std::numeric_limits<int>::max(), font, x,
+      "CLL: " VERSION, std::numeric_limits<int>::max(), font, x,
       y + static_cast<float>(font[2]) * scale, scale, scale, 0.0f, &color,
       game::itemTextStyle::NORMAL);
 }
 
-const char *get_ingame_console_prefix_stub() { return "EZZ> "; }
+const char *get_ingame_console_prefix_stub() { return "CLL> "; }
 } // namespace
 
 struct component final : client_component {
   void post_unpack() override {
-    if (!utils::flags::has_flag("nobranding")) {
+    command::add("about", []() {
+      MessageBoxA(nullptr,
+                  "CLL\n"
+                  "Modified client by MestreTM.\n\n"
+                  "Based on Ezz BOIII\n"
+                  "https://github.com/Ezz-lol/boiii-free\n\n"
+                  "Thanks to Ezz and the original BOIII authors.",
+                  "CLL — About",
+                  MB_OK | MB_ICONINFORMATION | MB_SETFOREGROUND);
+    });
 
-      scheduler::loop(draw_branding, scheduler::renderer);
+    // Window title + console prefix always stay CLL.
+    utils::hook::copy_string(0x14303F3D8_g, "CLL");
+    utils::hook::call(0x141339970_g, get_ingame_console_prefix_stub);
 
-      // Change window title prefix
-      utils::hook::copy_string(0x14303F3D8_g, "EZZ");
-
-      // Change ingame console prefix
-      utils::hook::call(0x141339970_g, get_ingame_console_prefix_stub);
+    // -nowatermark / -nobranding only hide the on-screen overlay.
+    if (utils::flags::has_flag("nowatermark") ||
+        utils::flags::has_flag("nobranding")) {
+      return;
     }
+
+    scheduler::loop(draw_branding, scheduler::renderer);
   }
 };
 } // namespace branding

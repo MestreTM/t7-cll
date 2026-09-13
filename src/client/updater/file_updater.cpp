@@ -34,7 +34,11 @@ std::string get_selected_version() {
   return "latest";
 }
 
-bool should_skip_host_update() { return get_selected_version() != "latest"; }
+bool should_skip_host_update() {
+  // Never overwrite this fork's boiii.exe with the Ezz CDN build,
+  // unless the user explicitly passes -update.
+  return !utils::flags::has_flag("update");
+}
 
 std::string get_update_file() {
   if (get_selected_version() == "beta") {
@@ -346,6 +350,11 @@ file_updater::get_outdated_files(const std::vector<file_info> &files) const {
 
 void file_updater::update_host_binary(
     const std::vector<file_info> &outdated_files) const {
+  if (should_skip_host_update()) {
+    OutputDebugStringA("Skipping host binary replacement (BOIII-CCL)\n");
+    return;
+  }
+
   const auto *host_file = find_host_file_info(outdated_files);
   if (!host_file) {
     return;

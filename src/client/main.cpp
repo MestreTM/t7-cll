@@ -18,7 +18,6 @@
 
 #include <game/game.hpp>
 #include "launcher/launcher.hpp"
-#include "launcher/html/html_window.hpp"
 #include "component/updater.hpp"
 
 #include <shlobj.h>
@@ -291,47 +290,26 @@ void close_running_client_binary_processes() {
 
 std::string
 get_manual_client_patch_message(const client_binary_state /*state*/) {
-  return "Incompatible game version detected:\n"
-         "The installed BlackOps3.exe version is not compatible with this "
-         "BOIII build.\n"
-         "This usually happens because Black Ops 3 was updated and BOIII "
-         "needs the older compatible BlackOps3.exe version.\n"
-         "To fix this, download the compatible BlackOps3.exe and replace the "
-         "one in your game directory.\n"
-         "You can find a download link under Settings => Patches.";
+  return "The installed BlackOps3.exe version is not compatible with this "
+         "client.\n\n"
+         "A compatible BlackOps3.exe could not be downloaded.\n"
+         "Replace BlackOps3.exe in the game folder with the supported build "
+         "and try again.";
 }
 
-std::string get_client_patch_prompt_message(const client_binary_state /*state*/,
-                                            const bool close_running_game) {
-  const auto close_message =
-      close_running_game
-          ? "\n\nBlack Ops 3 is already running. BOIII will close it when "
-            "the patch is ready, then continue launch."
-          : "";
-
-  return std::string(
-             "The installed BlackOps3.exe version is not compatible with "
-             "this BOIII build.\n\n"
-             "This usually means Black Ops 3 was updated and BOIII needs "
-             "the older compatible BlackOps3.exe version.\n\n"
-             "BOIII can download and install the compatible BlackOps3.exe "
-             "automatically before launch.") +
-         close_message + "\n\nPress OK to continue or Cancel to stop.";
-}
-
-bool prompt_to_install_client_patch(const client_binary_state state,
-                                    const bool close_running_game) {
+void warn_incompatible_client_binary() {
+  const char *text =
+      "The installed BlackOps3.exe version is not compatible with this "
+      "client.\n\n"
+      "A compatible BlackOps3.exe could not be downloaded from "
+      "archive.org.\n"
+      "Keep your current file or restore OldBlackOps3.exe and try again.";
   if (game::is_headless()) {
-    return false;
+    fprintf(stderr, "%s\n", text);
+    return;
   }
-
-  const auto result = MessageBoxA(
-      nullptr,
-      get_client_patch_prompt_message(state, close_running_game).c_str(),
-      "BOIII Patch Installer",
-      MB_OKCANCEL | MB_ICONQUESTION | MB_SETFOREGROUND | MB_TOPMOST);
-
-  return result == IDOK;
+  MessageBoxA(nullptr, text, "Incompatible BlackOps3.exe",
+              MB_OK | MB_ICONWARNING | MB_SETFOREGROUND | MB_TOPMOST);
 }
 
 std::string format_download_size(const size_t bytes) {
@@ -357,15 +335,14 @@ void install_supported_client_binary(
     const std::filesystem::path &client_binary,
     const bool allow_close_running_client_binary) {
   utils::progress_ui progress(false);
-  progress.set_title("BOIII Patch Installer");
+  progress.set_title("BlackOps3.exe");
   progress.set_line(1, "Downloading compatible BlackOps3.exe...");
-  progress.set_line(2, "Preparing download...");
+  progress.set_line(2, "Connecting to archive.org...");
   progress.show(true);
 
   const auto temp_binary =
       std::filesystem::path(client_binary.string() + ".boiii_download");
-  const auto backup_binary =
-      std::filesystem::path(client_binary.string() + ".boiii_backup");
+  const auto backup_binary = client_binary.parent_path() / "OldBlackOps3.exe";
 
   auto cleanup_temp =
       utils::finally([&]() { utils::io::remove_file(temp_binary); });
@@ -425,8 +402,7 @@ void install_supported_client_binary(
   }
 
   if (curl_code != CURLE_OK) {
-    throw std::runtime_error("Failed to download the compatible BlackOps3.exe "
-                             "patch. Please try again later.");
+    throw std::runtime_error("download_failed");
   }
 
   progress.set_marquee(false);
@@ -436,11 +412,8 @@ void install_supported_client_binary(
   progress.set_line(2, temp_binary.filename().string());
 
   const auto downloaded_checksum = get_pe_checksum(temp_binary);
-  if (!has_expected_client_patch_hash(temp_binary) || !downloaded_checksum ||
-      *downloaded_checksum != get_expected_client_checksum()) {
-    throw std::runtime_error(
-        "The downloaded BlackOps3.exe patch did not match the BOIII-"
-        "compatible version that this build expects.");
+  if (!downloaded_checksum) {
+    throw std::runtime_error("download_failed");
   }
 
   if (is_client_binary_process_running()) {
@@ -483,34 +456,29 @@ void install_supported_client_binary(
         "Failed to replace BlackOps3.exe with the downloaded patch.");
   }
 
-  const auto installed_state = classify_client_binary(client_binary);
-  if (installed_state != client_binary_state::supported) {
-    throw std::runtime_error("BlackOps3.exe was replaced, but the new file is "
-                             "still not compatible with this BOIII build.");
-  }
-
   installed = true;
-  utils::io::remove_file(backup_binary);
 
   progress.set_line(1, "BlackOps3.exe updated successfully.");
-  progress.set_line(2, "Continuing launch...");
+  progress.set_line(2, "Previous file saved as OldBlackOps3.exe");
   std::this_thread::sleep_for(350ms);
 }
 
 void ensure_compatible_client_binary(
     const std::filesystem::path &client_binary) {
   const auto state = classify_client_binary(client_binary);
-  if (state == client_binary_state::supported ||
-      state == client_binary_state::unreadable) {
+  if (state == client_binary_state::supported) {
     return;
   }
 
   const auto close_running_game = is_client_binary_process_running();
-  if (!prompt_to_install_client_patch(state, close_running_game)) {
+  try {
+    install_supported_client_binary(client_binary, close_running_game);
+  } catch (const patch_install_cancelled &) {
+    throw;
+  } catch (const std::exception &) {
+    warn_incompatible_client_binary();
     throw patch_install_cancelled{};
   }
-
-  install_supported_client_binary(client_binary, close_running_game);
 }
 
 PIMAGE_TLS_CALLBACK *get_tls_callbacks() {
@@ -708,14 +676,33 @@ std::string find_steam_game_path() {
 bool resolve_game_path() {
   const std::filesystem::path path_file = get_game_path_file();
 
+  auto adopt = [&](const std::string &folder) -> bool {
+    if (folder.empty() || !is_valid_game_folder(folder)) {
+      return false;
+    }
+    SetCurrentDirectoryA(folder.c_str());
+    std::error_code ec;
+    std::filesystem::create_directories(path_file.parent_path(), ec);
+    utils::io::write_file(path_file.string(), folder);
+    return true;
+  };
+
   if (is_valid_game_folder(".")) {
-    char cwd[MAX_PATH];
+    char cwd[MAX_PATH]{};
     if (GetCurrentDirectoryA(sizeof(cwd), cwd)) {
-      std::error_code ec;
-      std::filesystem::create_directories(path_file.parent_path(), ec);
-      utils::io::write_file(path_file.string(), std::string(cwd));
+      adopt(cwd);
     }
     return true;
+  }
+
+  char *env = nullptr;
+  size_t env_size = 0;
+  if (_dupenv_s(&env, &env_size, "BO3_INSTALL") == 0 && env) {
+    const std::string value = env;
+    std::free(env);
+    if (adopt(value)) {
+      return true;
+    }
   }
 
   {
@@ -726,189 +713,121 @@ bool resolve_game_path() {
              (stored_path.back() == '\n' || stored_path.back() == '\r' ||
               stored_path.back() == ' '))
         stored_path.pop_back();
-
-      if (is_valid_game_folder(stored_path)) {
-        SetCurrentDirectoryA(stored_path.c_str());
+      if (adopt(stored_path)) {
         return true;
       }
     }
   }
 
   {
-    std::string steam_game = find_steam_game_path();
-    if (!steam_game.empty()) {
-      std::error_code ec;
-      std::filesystem::create_directories(path_file.parent_path(), ec);
-      utils::io::write_file(path_file.string(), steam_game);
-      SetCurrentDirectoryA(steam_game.c_str());
+    const std::string steam_game = find_steam_game_path();
+    if (adopt(steam_game)) {
       return true;
     }
   }
 
-  bool path_set = false;
-
-  html_window setup_window("BOIII - Game Setup", 480, 300,
-                           WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU);
-
-  std::mutex setup_folder_mutex;
-  std::string setup_folder_result;
-  std::atomic<bool> setup_folder_busy{false};
-  std::atomic<bool> setup_folder_done{false};
-
-  setup_window.get_html_frame()->register_callback(
-      "openFolderPicker",
-      [&setup_folder_busy, &setup_folder_done, &setup_folder_mutex,
-       &setup_folder_result, &path_set, &setup_window, &path_file](
-          const std::vector<html_argument> & /*params*/) -> CComVariant {
-        if (setup_folder_busy.exchange(true))
-          return CComVariant("busy");
-        setup_folder_done = false;
-        {
-          std::lock_guard lock(setup_folder_mutex);
-          setup_folder_result.clear();
-        }
-        std::thread([&setup_folder_busy, &setup_folder_done,
-                     &setup_folder_mutex, &setup_folder_result, &path_set,
-                     &setup_window, &path_file]() {
-          CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-          std::string selected;
-          try {
-            IFileOpenDialog *pfd = nullptr;
-            HRESULT hr =
-                CoCreateInstance(CLSID_FileOpenDialog, nullptr,
-                                 CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
-            if (SUCCEEDED(hr) && pfd) {
-              unsigned long opts = 0;
-              pfd->GetOptions(&opts);
-              pfd->SetOptions(opts | FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM);
-              pfd->SetTitle(L"Select your Black Ops 3 installation folder");
-
-              hr = pfd->Show(nullptr);
-              if (SUCCEEDED(hr)) {
-                IShellItem *psi = nullptr;
-                if (SUCCEEDED(pfd->GetResult(&psi))) {
-                  LPWSTR path_buf = nullptr;
-                  if (SUCCEEDED(
-                          psi->GetDisplayName(SIGDN_FILESYSPATH, &path_buf)) &&
-                      path_buf) {
-                    const std::wstring wp(path_buf);
-                    const int len =
-                        WideCharToMultiByte(CP_UTF8, 0, wp.c_str(), -1, nullptr,
-                                            0, nullptr, nullptr);
-                    if (len > 0) {
-                      selected.resize(len - 1);
-                      WideCharToMultiByte(CP_UTF8, 0, wp.c_str(), -1,
-                                          &selected[0], len, nullptr, nullptr);
-                    }
-                    CoTaskMemFree(path_buf);
-                  }
-                  psi->Release();
-                }
-              }
-              pfd->Release();
-            }
-          } catch (...) {
-          }
-
-          if (!selected.empty()) {
-            if (!is_valid_game_folder(selected)) {
-              std::lock_guard lock(setup_folder_mutex);
-              setup_folder_result = "invalid";
-            } else {
-              std::error_code ec;
-              std::filesystem::create_directories(path_file.parent_path(), ec);
-              utils::io::write_file(path_file.string(), selected);
-              SetCurrentDirectoryA(selected.c_str());
-              path_set = true;
-              {
-                std::lock_guard lock(setup_folder_mutex);
-                setup_folder_result = selected;
-              }
-              PostMessage(static_cast<HWND>(*(setup_window.get_window())),
-                          WM_CLOSE, 0, 0);
-            }
-          } else {
-            std::lock_guard lock(setup_folder_mutex);
-            setup_folder_result = "cancelled";
-          }
-          CoUninitialize();
-          setup_folder_done = true;
-          setup_folder_busy = false;
-        }).detach();
-        return CComVariant("ok");
-      });
-
-  setup_window.get_html_frame()->register_callback(
-      "getFolderPickerResult",
-      [&setup_folder_done, &setup_folder_mutex, &setup_folder_result](
-          const std::vector<html_argument> & /*params*/) -> CComVariant {
-        if (!setup_folder_done.load())
-          return CComVariant("pending");
-        std::lock_guard lock(setup_folder_mutex);
-        return CComVariant(setup_folder_result.c_str());
-      });
-
-  setup_window.get_html_frame()->load_html(R"html(
-<!DOCTYPE html>
-<html>
-<head>
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-	background: #1a1a1a; color: #e0e0e0; font-family: 'Segoe UI', sans-serif;
-	display: flex; flex-direction: column; align-items: center; justify-content: center;
-	height: 100vh; padding: 30px; user-select: none;
+  fprintf(stderr,
+          "Game not found. Put boiii.exe next to BlackOps3.exe,\n"
+          "or set BO3_INSTALL to the game folder.\n");
+  return false;
 }
-.icon { font-size: 42px; margin-bottom: 12px; }
-h2 { font-size: 17px; font-weight: 600; margin-bottom: 8px; color: #fff; }
-p { font-size: 13px; color: #aaa; text-align: center; line-height: 1.5; margin-bottom: 20px; }
-button {
-	background: #2d7d2d; color: #fff; border: none; padding: 10px 28px;
-	font-size: 14px; border-radius: 4px; cursor: pointer; font-weight: 500;
-}
-button:hover { background: #359935; }
-#status { font-size: 12px; color: #e74c3c; margin-top: 12px; min-height: 18px; }
-</style>
-</head>
-<body>
-<div class="icon">&#9888;</div>
-<h2>Game Not Found</h2>
-<p>Could not locate Black Ops 3 installation.<br>Please select your game folder to continue.</p>
-<button id="selectBtn" onclick="doSelect()">Set Game Path</button>
-<div id="status"></div>
-<script>
-function doSelect() {
-	var btn = document.getElementById('selectBtn');
-	var r = window.external.openFolderPicker();
-	if (r === 'busy') return;
-	btn.disabled = true;
-	document.getElementById('status').innerText = '';
-	var poll = setInterval(function() {
-		var result = window.external.getFolderPickerResult();
-		if (result === 'pending') return;
-		clearInterval(poll);
-		btn.disabled = false;
-		if (result === 'invalid') {
-			document.getElementById('status').innerText = 'Selected folder does not contain BlackOps3.exe';
-		} else if (result === 'cancelled') {
-			document.getElementById('status').innerText = '';
-		}
-	}, 200);
-}
-</script>
-</body>
-</html>
-)html");
 
-  window::run();
-
-  return path_set;
-}
 } // namespace
-inline bool initial_update_required() {
-  return !utils::io::file_exists(
-      launcher::get_launcher_ui_file().generic_wstring());
+inline bool local_data_missing() {
+  const auto data = game::get_appdata_path() / "data";
+  return !utils::io::file_exists(data / "lookup_tables" / "dvar_list.txt") &&
+         !utils::io::directory_exists(data / "ui_scripts") &&
+         !utils::io::directory_exists(data / "scripts");
+}
+
+std::filesystem::path find_bundled_data_dir() {
+  std::vector<std::filesystem::path> candidates;
+  const utils::nt::library self{};
+  candidates.emplace_back(self.get_folder() / "data");
+  candidates.emplace_back(std::filesystem::current_path() / "data");
+
+  auto walk = self.get_folder();
+  for (int i = 0; i < 6; ++i) {
+    candidates.emplace_back(walk / "data");
+    if (!walk.has_parent_path() || walk.parent_path() == walk) {
+      break;
+    }
+    walk = walk.parent_path();
+  }
+
+  for (const auto &dir : candidates) {
+    if (utils::io::directory_exists(dir / "ui_scripts") ||
+        utils::io::directory_exists(dir / "scripts") ||
+        utils::io::file_exists(dir / "lookup_tables" / "dvar_list.txt")) {
+      return dir;
+    }
+  }
+
+  return {};
+}
+
+void seed_appdata_from_local() {
+  if (!local_data_missing()) {
+    return;
+  }
+
+  const auto src = find_bundled_data_dir();
+  if (src.empty()) {
+    return;
+  }
+
+  const auto dst = game::get_appdata_path() / "data";
+  if (src == dst) {
+    return;
+  }
+
+  utils::io::create_directory(dst);
+  utils::io::copy_folder(src, dst);
+  utils::io::remove_directory(dst / "launcher", true);
+}
+
+void show_about() {
+  constexpr auto *text =
+      "BOIII-CCL\n"
+      "Modified client by MestreTM.\n\n"
+      "Based on Ezz BOIII\n"
+      "https://github.com/Ezz-lol/boiii-free\n\n"
+      "Thanks to Ezz and the original BOIII authors.";
+
+  if (utils::flags::has_flag("headless")) {
+    puts(text);
+    return;
+  }
+
+  MessageBoxA(nullptr, text, "BOIII-CCL — About",
+              MB_OK | MB_ICONINFORMATION | MB_SETFOREGROUND);
+}
+
+void print_usage() {
+  constexpr auto *text =
+      "Thanks to Ezz and the original BOIII authors.\n"
+      "https://github.com/Ezz-lol/boiii-free\n\n"
+      "BOIII-CCL — modified client by MestreTM.\n"
+      "The HTML launcher is skipped. Launch from the command line:\n\n"
+      "  boiii.exe -launch\n"
+      "  boiii.exe -dedicated\n\n"
+      "Put a boiii\\ folder next to this exe (data + user).\n"
+      "Offline by default. No CDN download.\n\n"
+      "Optional:\n"
+      "  -about        show client credits\n"
+      "  -nick Name    player name\n"
+      "  -online       master.ezz.lol server list / friends presence\n"
+      "  -nowatermark  hide the BOIII-CCL overlay\n"
+      "  -noconsole    disable the external console window\n"
+      "  -headless     print errors to stdout";
+
+  if (utils::flags::has_flag("headless")) {
+    puts(text);
+    return;
+  }
+
+  MessageBoxA(nullptr, text, "BOIII-CCL",
+              MB_OK | MB_ICONINFORMATION | MB_SETFOREGROUND);
 }
 
 int main(int argc, char *argv[]) {
@@ -938,6 +857,19 @@ int main(int argc, char *argv[]) {
       validate_non_network_share();
       remove_crash_file();
 
+      const bool want_dedicated = utils::flags::has_flag("dedicated");
+      const bool want_launch = utils::flags::has_flag("launch") || want_dedicated;
+
+      if (!want_launch) {
+        if (utils::flags::has_flag("about")) {
+          show_about();
+        } else {
+          print_usage();
+        }
+      } else if (utils::flags::has_flag("about")) {
+        show_about();
+      }
+
       if (!resolve_game_path()) {
         return 0;
       }
@@ -957,32 +889,12 @@ int main(int argc, char *argv[]) {
         has_server = utils::io::file_exists(server_binary);
       }
 
-      const bool is_server =
-          utils::flags::has_flag("dedicated") || (!has_client && has_server);
+      const bool is_server = want_dedicated || (!has_client && has_server);
 
-      if (!is_server && !launcher::is_game_process_running()) {
-        updater::update(initial_update_required());
-      }
-
-      if (initial_update_required()) {
-        const std::filesystem::path appdata_path = game::get_appdata_path();
-        const std::string appdata_path_str = appdata_path.generic_string();
-        const char *err = utils::string::va(
-            "Missing required data in %s; Initial data download has failed. "
-            "BOIII needs an active internet connection "
-            "for the first time you launch it.",
-            appdata_path_str.c_str());
-        throw std::runtime_error(err);
-      }
+      seed_appdata_from_local();
 
       if (!is_server) {
         trigger_high_performance_gpu_switch();
-
-        const bool launch = utils::flags::has_flag("launch");
-        if (!launch && !launcher::run()) {
-          return 0;
-        }
-
         ensure_compatible_client_binary(client_binary);
       }
 

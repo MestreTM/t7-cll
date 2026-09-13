@@ -172,7 +172,8 @@ void *load_client_engine() {
   if (!steam_client_module)
     return nullptr;
 
-  for (auto i = 1; i <= 999; ++i) {
+  constexpr int versions[] = {8, 7, 6, 5, 9, 10, 4, 3, 2, 1};
+  for (int i : versions) {
     std::string name =
         utils::string::va("CLIENTENGINE_INTERFACE_VERSION%03i", i);
     auto *const temp_client_engine = steam_client_module.invoke<void *>(

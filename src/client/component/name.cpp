@@ -15,6 +15,7 @@
 #include <utils/string.hpp>
 #include <utils/properties.hpp>
 #include <utils/concurrency.hpp>
+#include <utils/flags.hpp>
 #include <str.hpp>
 
 #include "sv.hpp"
@@ -125,7 +126,31 @@ void update_player_name(const std::string &new_name) {
   store_player_name(new_name);
 }
 
+std::optional<std::string> get_cli_nick() {
+  auto nick = utils::flags::get<std::string>("nick");
+  if (!nick || nick->empty()) {
+    nick = utils::flags::get<std::string>("name");
+  }
+  if (!nick || nick->empty()) {
+    return std::nullopt;
+  }
+
+  std::string cleaned = sanitize_name(*nick);
+  if (cleaned.size() > 32) {
+    cleaned.resize(32);
+  }
+  if (cleaned.empty()) {
+    return std::nullopt;
+  }
+  return cleaned;
+}
+
 void setup_player_name() {
+  if (const auto nick = get_cli_nick()) {
+    update_player_name(*nick);
+    return;
+  }
+
   std::string initial_name = sanitize_name(steam_proxy::get_player_name());
   if (initial_name.empty())
     initial_name = sanitize_name(utils::nt::get_user_name());
@@ -135,6 +160,11 @@ void setup_player_name() {
 }
 
 void load_player_name() {
+  if (const auto nick = get_cli_nick()) {
+    update_player_name(*nick);
+    return;
+  }
+
   const std::optional<std::string> stored_name =
       utils::properties::load("playerName");
   if (stored_name.has_value()) {

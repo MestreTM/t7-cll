@@ -1438,6 +1438,9 @@ bool is_game_process_running() {
 }
 
 bool run() {
+  // HTML launcher disabled. Always continue into the game binary.
+  return true;
+
   // Use shared pointers for results to avoid capture-by-reference crashes on
   // exit
   auto run_game = std::make_shared<bool>(false);

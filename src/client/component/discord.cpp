@@ -418,20 +418,23 @@ void register_lua_libs() {
 class component final : public generic_component {
 public:
   void post_load() override {
-    if (game::is_client()) {
-      start_time = time(nullptr);
-
-      DiscordEventHandlers handlers{};
-      ZeroMemory(&handlers, sizeof(handlers));
-      handlers.ready = ready;
-      handlers.errored = errored;
-      handlers.disconnected = errored;
-
-      Discord_Initialize(DISCORD_APP_ID, &handlers, 1, nullptr);
-
-      scheduler::loop(Discord_RunCallbacks, scheduler::pipeline::async, 1s);
-      scheduler::loop(update_discord, scheduler::pipeline::main, 5s);
+    if (!game::is_client()) {
+      return;
     }
+
+    start_time = time(nullptr);
+    scheduler::once(
+        [] {
+          DiscordEventHandlers handlers{};
+          ZeroMemory(&handlers, sizeof(handlers));
+          handlers.ready = ready;
+          handlers.errored = errored;
+          handlers.disconnected = errored;
+          Discord_Initialize(DISCORD_APP_ID, &handlers, 1, nullptr);
+          scheduler::loop(Discord_RunCallbacks, scheduler::pipeline::async, 1s);
+          scheduler::loop(update_discord, scheduler::pipeline::main, 5s);
+        },
+        scheduler::pipeline::async);
   }
   void post_unpack() override { lua::register_lua_libs(); }
 

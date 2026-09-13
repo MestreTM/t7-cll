@@ -1127,7 +1127,6 @@ void load_global_hash_table() {
 
 void begin_load_scripts_stub(scriptInstance_t inst, int32_t user) {
   std::scoped_lock lock(script_load_mutex);
-  load_global_hash_table();
 
   scr::Scr_BeginLoadScripts(inst, user);
 
@@ -1144,6 +1143,7 @@ void begin_load_scripts_stub(scriptInstance_t inst, int32_t user) {
 }
 
 std::string resolve_hash(ScrVarCanonicalName_t hash) {
+  load_global_hash_table();
 
   std::optional<std::string> result;
   script_hash_names.if_contains(

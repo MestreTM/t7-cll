@@ -5,6 +5,8 @@
 
 #include <utils/flags.hpp>
 #include <utils/finally.hpp>
+#include <utils/nt.hpp>
+#include <utils/io.hpp>
 
 #include <combaseapi.h>
 
@@ -30,16 +32,12 @@ void show_error(const std::string &text, const std::string &title) {
 std::filesystem::path get_appdata_path() {
   static const std::filesystem::path appdata_path =
       []() -> std::filesystem::path {
-    PWSTR path = nullptr;
-    if (FAILED(
-            SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &path))) {
-      throw std::runtime_error("Failed to read APPDATA path!");
-    }
-
-    auto _ = utils::finally([&path] { CoTaskMemFree(path); });
-
-    // Ensure proper handling of wide character paths
-    return std::filesystem::path(path) / L"boiii";
+    const utils::nt::library self{};
+    const auto local = self.get_folder() / L"boiii";
+    utils::io::create_directory(local);
+    utils::io::create_directory(local / L"data");
+    utils::io::create_directory(local / L"user");
+    return local;
   }();
 
   return appdata_path;

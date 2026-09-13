@@ -1008,7 +1008,6 @@ struct component final : generic_component {
   }
 
   void post_unpack() override {
-
     if (utils::flags::has_flag("newsteamclient")) {
       patch_checksum_comparisons_new();
     } else {

@@ -699,6 +699,9 @@ void setup_functions() {
   // HTTP functions
   lua["game"]["httpget"] =
       function(convert_function([](const std::string &url) -> std::string {
+                 if (!utils::flags::has_flag("online")) {
+                   return "";
+                 }
                  const std::optional<std::string> result =
                      utils::http::get_data(url);
                  return result.value_or("");
@@ -708,6 +711,9 @@ void setup_functions() {
   lua["game"]["httppost"] =
       function(convert_function([](const std::string &url,
                                    const std::string &body) -> std::string {
+                 if (!utils::flags::has_flag("online")) {
+                   return "";
+                 }
                  const std::optional<std::string> result =
                      utils::http::post_data(url, body);
                  return result.value_or("");

@@ -1,481 +1,219 @@
-# Ezz BOIII ☄️: Call of Duty® Black Ops III Client
+# T7-CLL
 
-[![github](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/Ezz-lol/boiii-free)
+Modified client by **MestreTM**.
 
----
+Based on [Ezz BOIII](https://github.com/Ezz-lol/boiii-free), which is based on
+the original BOIII work by [momo5502](https://github.com/momo5502) and
+[X Labs](https://xlabs.dev/).
 
-> [!NOTE]
->
-> Feel free to open up Pull requests 😑
+Thanks to Ezz, momo5502, X Labs, and the original BOIII authors.
 
----
-
-## Table of Contents
-
-- [About BOIII](#about-boiii)
-- [Client Download](#client-download)
-- [Prerequisites](#prerequisites)
-- [Install Instructions](#install-instructions)
-- [Loading Mods & Custom Maps](#loading-mods--custom-maps)
-- [Workshop Downloader](#workshop-downloader)
-- [Command Line Arguments](#command-line-arguments)
-- [Hosting a Dedicated Server](#hosting-a-dedicated-server)
-  - [Requirements](#requirements)
-  - [Server Setup](#server-setup)
-  - [Connecting](#connecting)
-  - [Port Forwarding Alternatives](#port-forwarding-alternatives)
-- [Zombies Server Setup](#zombies-server-setup)
-- [Compile from Source](#compile-from-source)
-- [GSC Scripting Additions](#gsc-scripting-additions)
-- [Credits](#credits)
-- [Disclaimer](#disclaimer)
+You must legally own Call of Duty: Black Ops III.
 
 ---
 
-## About BOIII
+## Layout
 
-BOIII is a free, community-driven modification for Call of Duty: Black Ops III
-that removes Steam ownership verification and enhances the multiplayer and
-zombies experience. Whether you own the game or not, BOIII lets you jump in and
-play!
+Put these next to `BlackOps3.exe`:
 
-**Key Features:**
-
-- ✅ No Steam ownership required
-- 🌐 Cross-platform server browser
-- 🎮 Full multiplayer & zombies support
-- 🗺️ Custom maps and mods support
-- 🔧 Dedicated server hosting
-- 🎨 Steam Workshop integration
-
----
-
-## Client Download
-
-**Latest Release:**
-[Download BOIII Client](https://github.com/Ezz-lol/boiii-free/releases/latest)
-
-**Available Downloads:**
-
-- `boiii.exe` - Main BOIII client executable
-- `BOIII-Full.zip` - Complete package with all files
-- Source code available on GitHub
-
-**Quick Links:**
-
-- 📖 [Full Installation Guide](https://forum.ezz.lol/topic/5/bo3-guide)
-- 💬 [Discord Community](https://dc.ezz.lol)
-- 🐛 [Report Issues](https://github.com/Ezz-lol/boiii-free/issues)
-
----
-
-## Prerequisites
-
-- **Operating System:** Windows 10/11 (64-bit)
-- **Game Files:** Call of Duty: Black Ops III installation
-- **Storage:** ~60GB free space (for full game + DLC)
-- **Required:** Steam
-
----
-
-## Install Instructions
-
-1. **Download** the latest `BOIII.exe` from
-   [Releases](https://github.com/ezz-boiii/boiii/releases/latest)
-2. **Place** the executable in your Call of Duty: Black Ops III game directory
-3. **Run** `BOIII.exe`
-4. **Play!** 🎮
-
-> [!TIP]
->
-> The default Steam installation path is usually:
-> `C:/Program Files (x86)/Steam/steamapps/common/Call of Duty Black Ops III`
-
----
-
-## Where Can I Get the Game?
-
-### Option 1: Steam
-
-Purchase and download from
-[Steam Store](https://store.steampowered.com/app/311210/Call_of_Duty_Black_Ops_III/)
-💰 \
-If you struggle with this step, join our [Discord](https://dc.ezz.lol) and ask
-for help!
-
----
-
-## Loading Mods & Custom Maps
-
-> [!TIP]
->
-> **Default Workshop Location (Steam):**
-> `C:/Program Files (x86)/Steam/steamapps/workshop/content/311210/`
->
-> **BOIII comes with a built-in Workshop Downloader** - see the
-> [Workshop Downloader](#workshop-downloader) section!
-
-**Installation Steps:**
-
-1. **Download Mods/Maps**
-   - Use the built-in BOIII Workshop Downloader
-   - Or copy from your Steam workshop folder (if you own the game)
-   - Or use external workshop downloaders
-
-2. **Create Folders** (if they don't exist):
-
-   ```
-   Call of Duty Black Ops III/
-     ├─ mods/
-     └─ usermaps/
-   ```
-
-3. **Place Files:**
-   - **Mods:** Extract to `mods/` folder
-     - Example: `mods/zombie_mod_v2/zone/`
-     - The folder structure should be: `mods/[MOD_NAME]/zone/`
-   - **Custom Maps:** Extract to `usermaps/` folder
-     - Example: `usermaps/zm_castle/zone/`
-     - The folder structure should be: `usermaps/[MAP_NAME]/zone/`
-
-4. **Launch Ezz BOIII** and select your mod/map from the menu! 🎮
-
-> [!IMPORTANT]
->
-> **For Workshop Downloads from Steam:**
->
-> - Workshop items are in numbered folders (e.g., `311210/1234567890/`)
-> - Copy the entire numbered folder
-> - Rename it to match the mod/map name if needed
-> - Make sure the `zone/` folder is inside
-
-**Troubleshooting:**
-
-- If a mod shows "unsafe Lua" warning, launch with `-unsafe-lua` argument
-- If a map doesn't load, verify the folder structure matches
-  `[type]/[name]/zone/`
-- Check [forum.ezz.lol](https://forum.ezz.lol/topic/5/bo3-guide) for detailed
-  guides
-
----
-
-## Workshop Downloader
-
-**BOIII has a built-in Steam Workshop Downloader!** 🎉
-
-You can download Steam Workshop content directly through the BOIII client
-without needing Steam ownership.
-
-**How to use:**
-
-1. Launch `boiii.exe`
-2. Navigate to the Workshop Downloader section
-3. Enter the Workshop ID or URL
-4. Download directly to your game folder
-
-**External Tool (Alternative):** If you prefer a standalone tool, check out
-[BOIIIWD by faroukbmiled](https://github.com/faroukbmiled/BOIIIWD)
-
-**Finding Workshop IDs:**
-
-- Go to any Steam Workshop item page
-- Look at the URL: `steamcommunity.com/sharedfiles/filedetails/?id=XXXXXXXXX`
-- The numbers after `id=` are the Workshop ID
-
----
-
-## Command Line Arguments
-
-Launch BOIII with these arguments for extra features:
-
-| Argument              | Description                                                                                                                                                                                                                                  |
-| :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `-unsafe-lua`         | Allow mods to use unsafe Lua functions (required for some mods like All-Around Enhancement).                                                                                                                                                 |
-| `-dedicated`          | Launch as a dedicated server.                                                                                                                                                                                                                |
-| `-nosteam`            | Bypass Steam entirely.                                                                                                                                                                                                                       |
-| `-nointro`            | Skip intro videos.                                                                                                                                                                                                                           |
-| `-windowed`           | Launch in windowed mode.                                                                                                                                                                                                                     |
-| `-borderless`         | Launch in borderless fullscreen mode.                                                                                                                                                                                                        |
-| `-safe`               | Launch in safe mode (disable mods).                                                                                                                                                                                                          |
-| `-console`            | Enable developer console.                                                                                                                                                                                                                    |
-| `-nologs`             | Disable all patches to developer console.                                                                                                                                                                                                    |
-| `-fulllogs`           | Disable console buffer size limit.                                                                                                                                                                                                           |
-| `-port XXXX`          | Set server port (default: 27017).                                                                                                                                                                                                            |
-| `-launch`             | Start the game immediately, skipping some launcher UI and pre-checks.                                                                                                                                                                        |
-| `-noupdate`           | Disable automatic updates (not recommended).                                                                                                                                                                                                 |
-| `-update`             | Force enable updates (including host binary in debug builds).                                                                                                                                                                                |
-| `-norelaunch`         | Skip automatic relaunch after updates.                                                                                                                                                                                                       |
-| `-headless`           | Run in headless mode (no GUI).                                                                                                                                                                                                               |
-| `-noplugins`          | Disable plugin load.                                                                                                                                                                                                                         |
-| `-plugins`            | Load additional plugins from the `plugins/` directory.                                                                                                                                                                                       |
-| `-trimlogs`           | Trim or rotate old log files on startup.                                                                                                                                                                                                     |
-| `-keep-launcher`      | Keep the launcher process running after starting the game.                                                                                                                                                                                   |
-| `-ultrawide`          | Enable ultrawide UI scaling. Note: this is unstable and commonly breaks UI alignment where implemented assuming <= 1920x1080 aspect ratio.                                                                                                   |
-| `-cheats`             | Enable cheat dvar modification and cheat command execution. Note: usage when hosting a private match in client or when running dedicated server allows non-host players to execute cheat commands (e.g. `god`, `noclip`) - use with caution. |
-| `-noconsole`          | Hide the external console window without disabling logs.                                                                                                                                                                                     |
-| `-nobranding`         | Disable EZZ watermark and console prefix.                                                                                                                                                                                                    |
-| `-nocinematics`       | Disable playing all cinematics.                                                                                                                                                                                                              |
-| `-log-script-errors`  | Log all script errors, regardless of severity or `developer` dvar value.                                                                                                                                                                     |
-| `-noratelimit`        | Disable rate limiting in dedicated server.                                                                                                                                                                                                   |
-| `-quiet-crash`        | On crash, disable message box and minidump directory popups.                                                                                                                                                                                 |
-| `-mitigatepacketspam` | In dedicated server, attempt to reduce unnecessary reliable command packets sent by some custom maps' scripts. Fixes Kowloon and Daybreak client load-in failures.                                                                           |
-| `-nosnd`              | Disable attempt to load and use sound assets in dedicated server.                                                                                                                                                                            |
-| `-dump`               | Dump game or server executable to file in containing directory after Arxan unpack.                                                                                                                                                           |
-| `-disable-loadlib`    | Disable loading DLLs via `package.loadlib` in Lua. Can fix compatibility with mods that load DLLs that apply conflicting engine modifications.                                                                                               |
-
-**Example:**
-
-```bash
-boiii.exe -nointro -console -unsafe-lua
+```text
+<game>\
+  BlackOps3.exe
+  boiii.exe
+  boiii\
+    data\
+      gamesettings\
+      lookup_tables\
+      scripts\
+      ui_scripts\
+    user\
 ```
 
-> [!WARNING]
->
-> The `-unsafe-lua` argument is **required** for certain mods that need to
-> modify the UI, menus, or game scripts (like All-Around Enhancement Mod). Only
-> use this with trusted mods!
->
-> The `-headless` option may not behave correctly on non-server systems.
+`boiii\` is portable (next to the exe). The client does not use
+`%LOCALAPPDATA%\boiii` and does not contact `r2.ezz.lol` unless you pass
+`-online` or `-update`.
+
+Copy `data\` from this repo into `boiii\data\`. Skip `data\launcher\`
+(HTML launcher, unused).
+
+| Path | Why |
+|---|---|
+| `data/lookup_tables/dvar_list.txt` | console / dvar names |
+| `data/lookup_tables/hash_names.txt` | GSC hash names |
+| `data/ui_scripts/` | T7 UI Lua |
+| `data/scripts/` | GSC overrides |
+| `data/gamesettings/` | playlist / game settings |
+
+If `boiii\data` is empty, the exe looks for a `data\` folder next to the
+exe or up the source tree and copies it (dropping `launcher\`).
+
+Game folder fallbacks when `BlackOps3.exe` is not in the current directory:
+
+1. `BO3_INSTALL` environment variable
+2. `boiii\user\game_path.txt`
+3. Steam library path for Black Ops III
 
 ---
 
-## Hosting a Dedicated Server
+## Launch
 
-### Requirements
+Double-click shows credits/help. After **OK**, the game starts (same as
+`-launch`).
 
-- ✅
-  [Visual C++ 2015-2022 Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe)
-- ✅ Text editor ([VS Code](https://code.visualstudio.com/),
-  [Notepad++](https://notepad-plus-plus.org/), or
-  [Sublime Text](https://www.sublimetext.com/))
-- ✅ Computer or VPS with 24/7 uptime
-- ✅ Decent internet connection (10+ Mbps upload recommended)
-- ✅ Basic technical knowledge
-- ⚠️ Port forwarding access (or see
-  [alternatives](#port-forwarding-alternatives))
+```text
+boiii.exe
+boiii.exe -launch
+boiii.exe -dedicated
+```
 
-### Server Setup
+There is no flag that jumps straight into Multiplayer or Zombies. Both use
+`BlackOps3.exe`; pick the mode in the T7 menu.
 
-**For detailed server setup instructions, check out:** 🔗
-[BO3 Server Installer by framilano](https://github.com/framilano/BlackOps3ServerInstaller)
-
-**Quick Steps:**
-
-1. **Download** BO3 Unranked Dedicated Server from Steam (Tools section)
-
-2. **Add BOIII files** to your server directory
-
-3. **Configure server settings:**
-   - Edit `zone/dedicated.cfg`
-   - Set server name, map rotation, game mode
-   - Configure player count and rules
-
-4. **Setup firewall rules:**
-   - Allow UDP port 27017 (or your custom port)
-   - Allow TCP port 27017 (optional but recommended)
-
-5. **Launch server:**
-
-   ```bash
-   boiii.exe -dedicated
-   ```
-
-6. **Monitor** the console for any errors
-
-### Connecting
-
-**Option 1: Server Browser**
-
-- Open Ezz BOIII client
-- Navigate to "Server Browser"
-- Find your server and join!
-
-**Option 2: Direct Connect**
-
-- Open console (press `~`)
-- Type: `/connect IP:PORT`
-
-**Examples:**
-
-- Local: `/connect 192.168.1.100:27017`
-- WAN: `/connect 45.123.67.89:27017`
-
-> [!TIP]
->
-> Find your local IP: Press `Win + R`, type `cmd`, then type `ipconfig`
->
-> Find your WAN IP: Visit [WhatIsMyIP.com](https://www.whatismyip.com/)
-
-### Port Forwarding Alternatives
-
-Don't want to mess with port forwarding? Use these VPN tools to play with
-friends! 😎
-
-**Recommended Options:**
-
-- **ZeroTier** (Best for gaming)
-- **Radmin VPN** (Easy setup)
-- **Hamachi** (Classic choice)
-
-**Setup:**
-
-1. Download and install your chosen VPN tool
-2. Create/join a network
-3. Start your BOIII server
-4. Friends connect using your VPN IP: `/connect VPN_IP:27017`
+If the PE checksum of `BlackOps3.exe` does not match what this client
+expects, it downloads a replacement from
+`https://archive.org/download/t7_full_game/BlackOps3.exe`.
+The previous file is renamed to `OldBlackOps3.exe`. If the download fails,
+an English warning is shown and launch stops.
 
 ---
 
-## Zombies Server Setup
+## Flags
 
-Hosting Zombies requires additional files that don't come with the dedicated
-server package.
+### CLL
 
-### Required Files
+| Argument | Effect |
+|---|---|
+| `-launch` | Start without waiting on extra UI. Double-click already continues after OK |
+| `-dedicated` | Use `BlackOps3_UnrankedDedicatedServer.exe` |
+| `-about` | Credits dialog. In-game console: `about` |
+| `-nick Name` / `-name Name` | Player name |
+| `-online` | Contact `master.ezz.lol` (server list / friends). Allows Lua HTTP, Steam workshop scrape, public-IP lookup |
+| `-nowatermark` / `-nobranding` | Hide only the in-game overlay. Window title and console prefix stay `CLL` |
+| `-noconsole` | Do not allocate the external console |
+| `-headless` | Print errors to stdout (no GUI error boxes) |
+| `-update` | Allow replacing `boiii.exe` from the Ezz CDN (`r2.ezz.lol`) |
+| `-noupdate` | Extra guard against the client updater |
+| `-norelaunch` | Do not relaunch after a client update |
 
-Copy these from your full game installation to your dedicated server:
-
-**Common Zombies Files:**
-
-```
-zone/en_zm_patch.ff
-zone/en_zm_common.ff
-zone/zm_patch.ff
-zone/zm_common.fd
-zone/zm_common.ff
-zone/zm_levelcommon.ff
-```
-
-**Map-Specific Files (Example: Shadows of Evil):**
-
-```
-zone/en_zm_zod.ff
-zone/en_zm_zod_patch.ff
-zone/zm_zod.ff
-zone/zm_zod_patch.ff
+```text
+boiii.exe
+boiii.exe -launch -nick MestreTM -nowatermark -noconsole
+boiii.exe -launch -online
+boiii.exe -dedicated
 ```
 
-### Installation
+### Display / audio
 
-1. **Copy files** from `Call of Duty Black Ops III/zone/` to your server's
-   `zone/` folder
-2. **Repeat** for each map you want to host
-3. **Skip** `.xpak` files (these are textures/sounds that servers don't need)
+| Argument | Effect |
+|---|---|
+| `-windowed` | Windowed mode |
+| `-borderless` | Borderless window |
+| `-nointro` | Skip intro movies |
+| `-nc` / `-nocinematics` | Skip cinematics |
+| `-u` / `-uw` / `-ultrawide` | Ultrawide handling |
+| `-nosnd` | No sound |
 
-> [!NOTE]
->
-> If the server crashes on startup, check `console_mp.log` for missing zone
-> files
+### Network / server
 
-**Common Maps:**
+| Argument | Effect |
+|---|---|
+| `-port <n>` | Network port |
+| `-noratelimit` | Disable rate limit |
+| `-mitigatepacketspam` | Packet-spam mitigation |
+| `-nosteam` | Skip Steam proxy where supported |
 
-- `zm_zod` - Shadows of Evil
-- `zm_factory` - The Giant
-- `zm_castle` - Der Eisendrache
-- `zm_island` - Zetsubou No Shima
-- `zm_stalingrad` - Gorod Krovi
-- `zm_genesis` - Revelations
+### Logs / debug
+
+| Argument | Effect |
+|---|---|
+| `-d` / `-debug` / `-t` / `-trace` | Debug / trace logging |
+| `-sct` / `-scr-trace` | Script tracing |
+| `-vd` / `-vehicle-debug` | Vehicle debug |
+| `-console` | Request the game console |
+| `-trimlogs` | Trim log files |
+| `-nologs` | Disable logs |
+| `-fulllogs` | Verbose logs |
+| `-ls` / `-log-script-errors` | Log script errors |
+| `-quiet-crash` | Quieter crash reporting |
+| `-dump` | Dump the loaded PE after load/unpack |
+
+### Scripts / plugins / tools
+
+| Argument | Effect |
+|---|---|
+| `-plugins` | Enable plugins |
+| `-noplugins` | Disable plugins |
+| `-unsafe-lua` | Allow unsafe Lua |
+| `-e` / `-extract-assets` | Extract assets |
+| `-o` / `-output <path>` | Output path for extract |
+| `-ne` / `-no-ext` | Disable script extensions |
+| `-c` / `-cheats` / `-enable-cheats` | Enable cheats |
+| `-alias` | Alias helper |
+| `-disable-loadlib` | Block `LoadLibrary` helper |
+| `-keep-launcher` | Keep the original HTML launcher path (unused in CLL) |
+| `-newsteamclient` | Alternate Steam client checksum path |
+| `-safe` | Safe mode |
 
 ---
 
-## Compile from Source
+## Offline vs `-online`
 
-Want to build Ezz BOIII yourself? Here's how! 🔨
+Without `-online` the client stays local:
 
-### Prerequisites
+- no `r2.ezz.lol` client updater
+- no `master.ezz.lol` / `m.ezz.lol`
+- no `api.ipify.org`
+- no Steam workshop HTTP
+- Lua `game.httpget` / `game.httppost` return empty
 
-- [Visual Studio 2022 or newer](https://visualstudio.microsoft.com/downloads/)
-  (Community Edition is free), with the **Desktop development with C++**
-  workload
-- [Git](https://git-scm.com/downloads)
-- Windows 10/11 SDK
-- [clang-format](https://releases.llvm.org/) (for C/C++ formatting — install via
-  VS "C++ Clang tools" component or standalone LLVM)
-- [StyLua](https://github.com/JohnnyMorganz/StyLua/releases) (for Lua
-  formatting)
-- VS Build Tools
-  ([vs config you can import to quickly get the right ones](https://app.filen.io/#/d/52faaefc-2331-4904-897f-97bc2b36e4f1%23373366412d6a5456715853426253475063347531343161793171796d726d7445))<img width="1128" height="399" alt="image" src="https://github.com/user-attachments/assets/8f3a7a4d-b933-4d47-a193-c67260b96f16" />
+Still used locally / when needed:
 
-### Build Steps
+- `LoadLibrary` of `BlackOps3.exe`
+- Archive.org fetch of `BlackOps3.exe` when the local checksum does not match
+- joining a server you connect to (including that server's FastDL)
+- Discord Rich Presence (local Discord IPC)
 
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/Ezz-lol/boiii-free.git
-   cd boiii-free
-   ```
-
-2. **Generate project files:**
-
-   ```bash
-   generate.bat
-   ```
-
-   This initializes all Git submodules and downloads the pinned Premake version
-   automatically.
-
-   To generate the project and build `Release|x64` entirely from the command
-   line, run `build.bat` instead. The script pauses at the end so you can review
-   the build result.
-
-3. **Open in Visual Studio:**
-   - Open `build/boiii.sln`
-   - Set configuration to `Release` and platform to `x64`
-   - Build the solution (Ctrl+Shift+B)
-
-4. **Find your build:**
-   - Output will be in `build/bin/x64/Release/`
+Steam Workshop download/UI is stubbed. Local `mods` / `usermaps` still work
+if the files are already on disk.
 
 ---
 
-## GSC Scripting Additions
+## Branding
 
-This project supports loading raw GSC code with a more relaxed syntax and adds
-extra utility functions to make scripting and mod development easier.
+- Overlay: `CLL: <version>` (hidden with `-nowatermark`)
+- Window title prefix: `CLL`
+- Console prefix: `CLL>`
+- Splash: stock image + white bold `Loading...` on the bottom right
 
-For the full guide and examples, see
-[docs/gsc-scripting.md](docs/gsc-scripting.md).
+---
+
+## Build
+
+Needs Visual Studio with **C++ Clang tools for Windows** (`msc-clangcl`).
+
+```powershell
+git clone --recursive https://github.com/MestreTM/t7-cll.git
+cd t7-cll
+git submodule update --init --recursive
+.\build.bat
+```
+
+Output: `build\bin\x64\Release\boiii.exe`
+
+Copy the exe **and** a `boiii\` folder (with `data`) into the game directory.
+
+After changing sources, delete the PCH if MSBuild complains:
+
+```powershell
+Remove-Item -Recurse -Force .\build\obj\x64\Release\client -ErrorAction SilentlyContinue
+.\build.bat
+```
 
 ---
 
 ## Credits
 
-**BOIII Development Team** 💪
-
-- Developers, contributors, and the entire BOIII community
-
-**Special Thanks:**
-
-- [Likeicareaboutit](https://github.com/Likeicareaboutit) - Steam Workshop
-  Downloader
-- [framilano](https://github.com/framilano) - BO3 Server Installer
-- Everyone in the [BOIII Discord](https://dc.ezz.lol) community! 😎
-
----
-
-## Disclaimer
-
-This software has been created purely for the purposes of academic research and
-to preserve access to Call of Duty: Black Ops III multiplayer and zombies modes.
-It is not intended to be used to harm others or violate any terms of service.
-
-**Project maintainers are not responsible or liable for misuse of the software.
-Use responsibly.**
-
-This is a non-profit, community-driven project. We do not condone piracy. If you
-enjoy the game, please consider supporting the developers by purchasing it
-legally.
-
----
-
-<p align="center">
-  <strong>Join our community!</strong><br>
-  <a href="https://dc.ezz.lol">Discord</a> • 
-  <a href="https://github.com/Ezz-lol/boiii-free">GitHub</a> • 
-  <a href="https://github.com/Ezz-lol/boiii-free/issues">Report Issues</a> •
-  <a href="https://forum.ezz.lol/topic/5/bo3-guide">Installation Guide</a>
-</p>
-
-<p align="center">
-  Made with ❤️ by the BOIII community ☄️
-</p>
+- [Ezz / Ezz-lol/boiii-free](https://github.com/Ezz-lol/boiii-free)
+- [momo5502](https://github.com/momo5502) and [X Labs](https://xlabs.dev/) — original BOIII
+- Community T7 research and patches that BOIII built on
+- **MestreTM** — CLL modifications (CLI, portable data, offline-by-default, branding)

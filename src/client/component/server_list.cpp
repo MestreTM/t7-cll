@@ -10,6 +10,7 @@
 #include <utils/concurrency.hpp>
 #include <utils/hook.hpp>
 #include <utils/io.hpp>
+#include <utils/flags.hpp>
 
 #include "network.hpp"
 #include "scheduler.hpp"
@@ -346,6 +347,11 @@ inline void parse_master_server_hosts() {
 
 static std::once_flag parse_master_servers_once;
 std::vector<game::net::netadr_t> get_master_servers() {
+  // Offline by default. Only talk to master.ezz.lol with -online.
+  if (!utils::flags::has_flag("online")) {
+    return {};
+  }
+
   std::call_once(parse_master_servers_once, parse_master_server_hosts);
   return master_server_hosts;
 }
